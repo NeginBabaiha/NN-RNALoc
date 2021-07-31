@@ -15,4 +15,4 @@ To run RNALocator, first unzip both rnalocate.zip and cefra-seq.zip files contai
 
 ## Contact
 Please do not hesitate to contact me if you have any question: \
-Mail: <n.babaeiha@mail.sbu.ac.ir>
+Mail: <neginbabaiha@gmail.com>
