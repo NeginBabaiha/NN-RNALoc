@@ -1,6 +1,6 @@
 # NN-RNALoc: a neural network based model to predict the cellular location of mRNA
 
-NN-RNALoc is a machine-learning based model to predict the sub-cellular location of mRNAs which is evaluated on two following datasets: Cefra-seq and RNALocate.  NN-RNALoc, a neural network-based predictive tool employs the features extracted from mRNA sequences along with the information gathered from their. 
+NN-RNALoc is a machine-learning based model to predict the sub-cellular location of mRNAs which is evaluated on two following datasets: Cefra-seq and RNALocate.  NN-RNALoc, a neural network-based predictive tool employs the features extracted from mRNA sequences along with the information gathered from their sequences.
 
 ## Dependency
 
