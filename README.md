@@ -15,4 +15,4 @@ To run NN-RNALoc, first unzip both rnalocate.zip and cefra-seq.zip files contain
 
 ## Contact
 Please do not hesitate to contact me if you have any question: \
-Mail: <neginbabaiha@gmail.com>
+Mail: <negin.babaiha@uni-bonn.de>
