@@ -478,7 +478,7 @@ if __name__ == "__main__":
     parser.add_argument('--upper_bound', type=int, default= 40000, help='set upper bound on sample sequence length') #default=4000
     parser.add_argument('--max_len', type=int, default=40000,
                         help="only a programming trick")
-    parser.add_argument('--dataset', type=str, default='rnalocate', choices=['cefra-seq', 'apex-rip'],
+    parser.add_argument('--dataset', type=str, default='rnalocate', choices=['cefra-seq', 'rnalocate'],
                         help='choose from cefra-seq and rnalocate')
     parser.add_argument('--epochs', type=int, default=300, help='')
 
