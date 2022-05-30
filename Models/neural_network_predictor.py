@@ -179,11 +179,11 @@ class RNALocator:
         self.bn = False
         self.model.summary()
 
-    def build_neural_network(self,input_dim):
+    def build_neural_network(self,input_dim, nb_classes):
         input_data = Input(shape=(input_dim,))
         first = Dense(200,activation = 'relu')(input_data)
         first_out = Dropout(0.2)(first)
-        output = Dense(5,activation = 'softmax')(first_out)
+        output = Dense(nb_classes,activation = 'softmax')(first_out)
         model_ = Model(input_data, output)
         loss_ = tf.keras.losses.CategoricalCrossentropy()
         self.model = model_
