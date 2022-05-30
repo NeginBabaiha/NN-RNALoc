@@ -452,7 +452,7 @@ def run_model(lower_bound, upper_bound, max_len, dataset, **kwargs):
             print('Evaluating KFolds {}/10'.format(i + 1))
             model = RNALocator(max_len, nb_classes, OUTPATH, kfold_index=i)# initialize
             print("Build RNALocator")
-            model.build_neural_network(np.shape(newData)[1])
+            model.build_neural_network(np.shape(newData)[1], nb_classes)
             model.train(newData[train_indices], y[train_indices], batch_size, kwargs['epochs'])
             model.evaluate(newData[test_indices],y[test_indices], dataset)
         mydataframe = evaluate_folds.evaluate_folds(OUTPATH, dataset,myindex)
