@@ -1,3 +1,9 @@
+#!/usr/bin/env python
+# coding: utf-8
+
+# In[1]:
+
+
 import datetime
 import itertools
 from collections import OrderedDict
@@ -10,19 +16,21 @@ from sklearn import preprocessing
 from sklearn.preprocessing import MinMaxScaler
 import scipy
 import statistics
-import sys
 #import Biopython
 import h5py
 from sklearn.decomposition import PCA
 import numpy as np
 import evaluate_folds
-
 os.environ["CUDA_VISIBLE_DEVICES"] = "1"
-basedir = os.path.split(os.path.dirname(os.path.abspath(__file__)))[0]
-sys.path.append(basedir)
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+#basedir = os.path.split(os.path.dirname(os.path.abspath(__file__)))[0]
+#sys.path.append(basedir)
+#sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 import tensorflow as tf
+
+
+# In[2]:
+
 
 gpu_options = tf.compat.v1.GPUOptions()
 gpu_options.allow_growth = True
@@ -37,6 +45,10 @@ sess = tf.compat.v1.Session(graph=tf.compat.v1.get_default_graph(), config=confi
 tf.compat.v1.keras.backend.set_session(sess)
 #set_session(session=sess)
 
+
+# In[3]:
+
+
 from Models.neural_network_predictor import *
 from transcript_info import Gene_Wrapper
 from tensorflow.python.keras.preprocessing.sequence import pad_sequences
@@ -46,6 +58,7 @@ from tensorflow.python.keras import models
 from tensorflow.python.keras.models import load_model
 
 
+# In[4]:
 
 
 gene_ids = None
@@ -56,11 +69,12 @@ batch_size = 512
 nb_classes = 5
 
 
+# In[5]:
+
+
 def label_dist(dist):
     assert (len(dist) == 4)
     return np.array(dist) / np.sum(dist)
-
-
 def preprocess_data(lower_bound, upper_bound, use_annotations, dataset, max_len):
     
     ''' import data CEFRA-SEQ: CDNA_SCREENED.FA using GENE_WRAPPER calss fromtranascript_gene_data
@@ -88,6 +102,8 @@ def preprocess_data(lower_bound, upper_bound, use_annotations, dataset, max_len)
     return X, y, gene_info
 
 
+# In[6]:
+
 
 def get_kmer(string):
     
@@ -100,6 +116,10 @@ def get_kmer(string):
 
 def toString(List): 
     return ''.join(List) 
+
+
+# In[7]:
+
 
 # The main function that recursively prints all repeated 
 # permutations of the given string. It uses data[] to store 
@@ -124,8 +144,11 @@ def allLexicographicRecur (string, data, last, index):
 
         else: 
             allLexicographicRecur(string, data, last, index+1) 
-            
-    
+
+
+# In[8]:
+
+
 def allLexicographic(string): 
 	length = len(string) 
 
@@ -140,12 +163,12 @@ def allLexicographic(string):
 	# Now print all permutaions 
 	allLexicographicRecur(string, data, length+2, 0)
     
-    
 
-    
+
+# In[9]:
+
+
 #allLexicographic(string) 
-
-
 def printglobal():
     global temp
     print("shape of 5-mer",temp[1])
@@ -195,6 +218,10 @@ def findSubsequenceCount(S, T):
   
     return mat[m][n]
 
+
+# In[11]:
+
+
 #Function to count normal k mers
 def count_(string, substring): 
     # Initialize count and start to 0 
@@ -220,13 +247,16 @@ def count_(string, substring):
             # If no further substring is present 
             # return the value of count 
             return count 
-         
+
+
+# In[ ]:
+
+
 # starts training in CNN model
 def run_model(lower_bound, upper_bound, max_len, dataset, **kwargs):
     '''load data into the playground'''
     X, y, gene_info = preprocess_data(lower_bound, upper_bound,max_len, dataset, max_len)
     return
-    
     #Load protein information
     if(dataset == "cefra-seq"):
         with open('ppiMatrixScoress.npy', 'rb') as f:
@@ -480,7 +510,7 @@ if __name__ == "__main__":
                         help="only a programming trick")
     parser.add_argument('--dataset', type=str, default='rnalocate', choices=['cefra-seq', 'rnalocate'],
                         help='choose from cefra-seq and rnalocate')
-    parser.add_argument('--epochs', type=int, default=300, help='')
+    parser.add_argument('--epochs', type=int, default=1, help='')
 
     parser.add_argument("--message", type=str, default="", help="append to the dir name")
     parser.add_argument("--load_pretrain", action="store_true",
@@ -507,3 +537,4 @@ if __name__ == "__main__":
 
     
     run_model(**vars(args))
+

@@ -1,4 +1,11 @@
+#!/usr/bin/env python
+# coding: utf-8
+
+# In[ ]:
+
+
 import numpy as np
+import pandas as pd
 import os
 import scipy.stats as stats
 import argparse
@@ -133,6 +140,8 @@ def evaluate_folds(expr_path, dataset, myindex):
 
     print("More than 3 locs", loc_count)  
     y_pred = y_pred_list
+    #print(444444444444)
+    #print('y_pred is',y_pred)
 
     '''
     loc0 = 0
@@ -168,10 +177,17 @@ def evaluate_folds(expr_path, dataset, myindex):
     from sklearn import metrics
     
     report = classification_report(y_test, y_pred, digits = 10)
-    print(report)
-    return
+    print('type(report) is:',type(report))
+    print(8888)
+    print('report is:',report)
+    #report=pd.DataFrame(eval(report))
+    print(99999)
+    return report
     report = classification_report(y_test, y_pred, output_dict=True)
+    #print('report2 is:',report)
     mydataframe = pandas.DataFrame(report).transpose()
+    #print(55555555)
+    print('mydataframe is:',mydataframe)
     from sklearn.metrics import matthews_corrcoef
     print("MCC",matthews_corrcoef(y_test, y_pred))
     print("Finished")
@@ -183,17 +199,17 @@ def evaluate_folds(expr_path, dataset, myindex):
         
     return mydataframe
 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
+#if __name__ == "__main__":
+ #   parser = argparse.ArgumentParser()
 
-    parser.add_argument("--expr_path", type=str, default="",
-                        help="Specify saved experiment folder. If path is relative, please make sure it's relative to the root folder.")
-    parser.add_argument("--randomization", type=int, default=None,
-                        help="Running randomization test with three settings - {1,2,3}.")
-    parser.add_argument('--dataset', type=str, default='cefra-seq', choices=['cefra-seq', 'apex-rip'],
-                        help='choose from cefra-seq and apex-rip')
-    args = parser.parse_args()
-    print(args.randomization)
+  #  parser.add_argument("--expr_path", type=str, default="",
+                        #help="Specify saved experiment folder. If path is relative, please make sure it's relative to the root folder.")
+   # parser.add_argument("--randomization", type=int, default=None,
+                        #help="Running randomization test with three settings - {1,2,3}.")
+    #parser.add_argument('--dataset', type=str, default='cefra-seq', choices=['cefra-seq', 'apex-rip'],
+                        #help='choose from cefra-seq and apex-rip')
+    #args = parser.parse_args()
+    #print(args.randomization)
 
-    evaluate_folds(args.expr_path, args.dataset, 0)
+    #evaluate_folds(args.expr_path, args.dataset, 0)
 
