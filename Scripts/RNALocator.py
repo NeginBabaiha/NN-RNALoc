@@ -1,12 +1,7 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[1]:
-
-
 import datetime
 import itertools
 from collections import OrderedDict
+import matplotlib
 import argparse
 import os
 import sys
@@ -16,21 +11,18 @@ from sklearn import preprocessing
 from sklearn.preprocessing import MinMaxScaler
 import scipy
 import statistics
+import sys
 #import Biopython
 import h5py
 from sklearn.decomposition import PCA
 import numpy as np
-import evaluate_folds
+#import evaluate_folds
 os.environ["CUDA_VISIBLE_DEVICES"] = "1"
-#basedir = os.path.split(os.path.dirname(os.path.abspath(__file__)))[0]
-#sys.path.append(basedir)
-#sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+basedir = os.path.split(os.path.dirname(os.path.abspath(__file__)))[0]
+sys.path.append(basedir)
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 import tensorflow as tf
-
-
-# In[2]:
-
 
 gpu_options = tf.compat.v1.GPUOptions()
 gpu_options.allow_growth = True
@@ -45,20 +37,15 @@ sess = tf.compat.v1.Session(graph=tf.compat.v1.get_default_graph(), config=confi
 tf.compat.v1.keras.backend.set_session(sess)
 #set_session(session=sess)
 
-
-# In[3]:
-
-
 from Models.neural_network_predictor import *
-from transcript_info import Gene_Wrapper
-from tensorflow.python.keras.preprocessing.sequence import pad_sequences
+from transcript_gene_data import Gene_Wrapper
+from tensorflow.keras.preprocessing.sequence import pad_sequences
 #from tensorflow.keras import backend as K
 from tensorflow.python.keras import backend as k
 from tensorflow.python.keras import models
 from tensorflow.python.keras.models import load_model
 
 
-# In[4]:
 
 
 gene_ids = None
@@ -66,28 +53,27 @@ temp = []
 gene_ann = []
 
 batch_size = 512
-nb_classes = 5
-
-
-# In[5]:
+nb_classes = 4
 
 
 def label_dist(dist):
     assert (len(dist) == 4)
     return np.array(dist) / np.sum(dist)
+
+
 def preprocess_data(lower_bound, upper_bound, use_annotations, dataset, max_len):
     
     ''' import data CEFRA-SEQ: CDNA_SCREENED.FA using GENE_WRAPPER calss fromtranascript_gene_data
     '''
     if(dataset == "rnalocate"):
         import Data.rnalocate.processData as processor
-        X, y, gene_info = processor.process_data()
+        X, y = processor.process_data()
     if(dataset == "cefra-seq"):
-            gene_data = Gene_Wrapper.seq_data_loader(use_annotations, dataset, lower_bound, upper_bound)
-            
-            X= [gene.seq for gene in gene_data]
-            y = np.array([label_dist(gene.dist) for gene in gene_data])
-            gene_info = [gene.id for gene in gene_data]
+        gene_data = Gene_Wrapper.seq_data_loader(use_annotations, dataset, lower_bound, upper_bound)
+        
+        X= [gene.seq for gene in gene_data]
+        y = np.array([label_dist(gene.dist) for gene in gene_data])
+        #gene_info = [gene.id for gene in gene_data]
 
     print("Shape of X", np.shape(X))
     print("Shape of y", np.shape(y))
@@ -95,14 +81,12 @@ def preprocess_data(lower_bound, upper_bound, use_annotations, dataset, max_len)
     from time import sleep
     
     
-    print("length of gene ids", np.shape(gene_info))
+    #print("length of gene ids", np.shape(gene_info))
 
 
     
-    return X, y, gene_info
+    return X, y
 
-
-# In[6]:
 
 
 def get_kmer(string):
@@ -116,10 +100,6 @@ def get_kmer(string):
 
 def toString(List): 
     return ''.join(List) 
-
-
-# In[7]:
-
 
 # The main function that recursively prints all repeated 
 # permutations of the given string. It uses data[] to store 
@@ -144,11 +124,8 @@ def allLexicographicRecur (string, data, last, index):
 
         else: 
             allLexicographicRecur(string, data, last, index+1) 
-
-
-# In[8]:
-
-
+            
+    
 def allLexicographic(string): 
 	length = len(string) 
 
@@ -163,12 +140,12 @@ def allLexicographic(string):
 	# Now print all permutaions 
 	allLexicographicRecur(string, data, length+2, 0)
     
+    
 
-
-# In[9]:
-
-
+    
 #allLexicographic(string) 
+
+
 def printglobal():
     global temp
     print("shape of 5-mer",temp[1])
@@ -218,10 +195,6 @@ def findSubsequenceCount(S, T):
   
     return mat[m][n]
 
-
-# In[11]:
-
-
 #Function to count normal k mers
 def count_(string, substring): 
     # Initialize count and start to 0 
@@ -247,31 +220,79 @@ def count_(string, substring):
             # If no further substring is present 
             # return the value of count 
             return count 
-
-
-# In[ ]:
-
-
+         
 # starts training in CNN model
 def run_model(lower_bound, upper_bound, max_len, dataset, **kwargs):
     '''load data into the playground'''
-    X, y, gene_info = preprocess_data(lower_bound, upper_bound,max_len, dataset, max_len)
-    return
+    X, y = preprocess_data(lower_bound, upper_bound,max_len, dataset, max_len)
+    
+    '''import pickle
+    history = pickle.load(open("trainHistory","rb"))
+    import matplotlib.pyplot as plt
+    plt.plot(history['loss'])
+    plt.plot(history['val_loss'])
+    plt.title('model loss')
+    plt.ylabel('loss')
+    plt.xlabel('epoch')
+    plt.legend(['train', 'test'], loc='upper left')
+    plt.show()'''
+    
+ 
+    '''with open('indep_target_nonHuman.npy', 'wb') as f:
+        np.save(f, y)'''
+    
+        
+    '''with open('indep_seq_Human.txt', 'w') as f:
+        for item,seq in enumerate(X):
+            f.write(">")
+            f.write(str(item))
+            f.write("\n")
+            f.write(str(seq))
+            f.write("\n")
+    '''
+    
+    #mRNALoc results
+    '''res = [line.rstrip() for line in f]
+    res.pop(0)
+    print(res)
+    f.close()
+    count = len(open("mRNALoc_Indep_Human.txt").readlines(  ))
+    print(count)
+    '''
+    
     #Load protein information
     if(dataset == "cefra-seq"):
+        print("Cefra-seq PPI inforamtion")
         with open('ppiMatrixScoress.npy', 'rb') as f:
             ppi = np.load(f)
         nb_classes = 4
         
     if(dataset == "rnalocate"):
+        print("Loadin ppi info")
         with open('ppiHomosapRNALocate.npy', 'rb') as f:
             ppi = np.load(f)
         nb_classes = 5
         
-    else:
-        raise Exception('Invalid ppi inforamtion')
-    #Compute novel distance based k mers
+        
+    # Do feature importance with a regressor baseline
+    from sklearn.linear_model import Ridge
+    from sklearn.model_selection import train_test_split
+    from sklearn.inspection import permutation_importance
+    from sklearn.linear_model import LinearRegression
     
+    from matplotlib import pyplot
+    from sklearn import preprocessing
+    scaler = preprocessing.MinMaxScaler()
+    scalerPPI = preprocessing.MinMaxScaler()
+    pca = PCA(n_components=500)
+    ppi = scaler.fit_transform(ppi)
+    ppiPCA = pca.fit_transform(ppi)
+    print("Done PCA")
+    newData = ppiPCA
+    
+    
+    #Compute novel distance based k mers
+
     newmer = []
     for k in range(0,9):
         i = "x" * k
@@ -319,101 +340,101 @@ def run_model(lower_bound, upper_bound, max_len, dataset, **kwargs):
     
     for i in X:
         i = str(i)
-        for j in range(0,9):
+        for j in range(0,2):
             k= str(j) 
             pattern = "A[A,C,G,T]{" +k+ "}A"
             matches = re.findall(pattern,i,overlapped=True)
             key = "A" + "x"*(j) + "A"
-            kdist[dictmers[key]] = len(matches) 
+            kdist[dictmers[key]] = len(matches) / len(i)
         for j in range(0,9):
             k= str(j)
             pattern = "A[A,C,G,T]{" +k+ "}C"
             matches = re.findall(pattern,i,overlapped=True)
             key = "A" + "x"*(j) + "C"
-            kdist[dictmers[key]] = len(matches) 
+            kdist[dictmers[key]] = len(matches) / len(i)
         for j in range(0,9):
             k= str(j)
             pattern = "A[A,C,G,T]{" +k+ "}G"
             key = "A" + "x"*(j) + "G"
-            kdist[dictmers[key]] = len(matches) 
+            kdist[dictmers[key]] = len(matches) / len(i)
         for j in range(0,9):
             k= str(j)
             pattern = "A[A,C,G,T]{" +k+ "}T"
             matches = re.findall(pattern,i,overlapped=True)
             key = "A" + "x"*(j) + "T"
-            kdist[dictmers[key]] = len(matches) 
+            kdist[dictmers[key]] = len(matches) / len(i)
         for j in range(0,9):
             k= str(j)
             pattern = "C[A,C,G,T]{" +k+ "}A"
             matches = re.findall(pattern,i,overlapped=True)
             key = "C" + "x"*(j) + "A"
-            kdist[dictmers[key]] = len(matches) 
+            kdist[dictmers[key]] = len(matches) / len(i)
         for j in range(0,9):
             k= str(j)
             pattern = "C[A,C,G,T]{"+k+"}G"
             matches = re.findall(pattern,i,overlapped=True)
             key = "C" + "x"*(j) + "G"
-            kdist[dictmers[key]] = len(matches) 
+            kdist[dictmers[key]] = len(matches) / len(i)
         for j in range(0,9):  
             k= str(j)
             pattern = "C[A,C,G,T]{"+k+"}C"
             matches = re.findall(pattern,i,overlapped=True)
             key = "C" + "x"*(j) + "C"
-            kdist[dictmers[key]] = len(matches) 
+            kdist[dictmers[key]] = len(matches) / len(i)
         for j in range(0,9):
             k= str(j)
             pattern = "C[A,C,G,T]{"+k+"}T"
             matches = re.findall(pattern,i,overlapped=True)
             key = "C" + "x"*(j) + "T"
-            kdist[dictmers[key]] = len(matches) 
+            kdist[dictmers[key]] = len(matches) / len(i)
         for j in range(0,9):
             k= str(j)
             pattern = "G[A,C,G,T]{"+k+"}A"
             matches = re.findall(pattern,i,overlapped=True)
             key = "G" + "x"*(j) + "A"
-            kdist[dictmers[key]] = len(matches) 
+            kdist[dictmers[key]] = len(matches) / len(i)
         for j in range(0,9):
             k= str(j)
             pattern = "G[A,C,G,T]{"+k+"}C"
             matches = re.findall(pattern,i,overlapped=True)
             key = "G" + "x"*(j) + "C"
-            kdist[dictmers[key]] = len(matches) 
+            kdist[dictmers[key]] = len(matches) / len(i)
         for j in range(0,9):
             k= str(j)
             pattern = "G[A,C,G,T]{"+k+"}G"
             matches = re.findall(pattern,i,overlapped=True)
             key = "G" + "x"*(j) + "G"
-            kdist[dictmers[key]] = len(matches) 
+            kdist[dictmers[key]] = len(matches) / len(i)
         for j in range(0,9):
             k= str(j)
             pattern = "G[A,C,G,T]{"+k+"}T"
             matches = re.findall(pattern,i,overlapped=True)
             key = "G" + "x"*(j) + "T"
-            kdist[dictmers[key]] = len(matches)
+            kdist[dictmers[key]] = len(matches) / len(i)
         for j in range(0,9):
             k= str(j)
             pattern = "T[A,C,G,T]{"+k+"}A"
             matches = re.findall(pattern,i,overlapped=True)
             key = "T" + "x"*(j) + "A"
-            kdist[dictmers[key]] = len(matches) 
+            kdist[dictmers[key]] = len(matches) / len(i)
         for j in range(0,9):
             k= str(j)
             pattern = "T[A,C,G,T]{"+k+"}C"
             matches = re.findall(pattern,i,overlapped=True)
             key = "T" + "x"*(j) + "C"
-            kdist[dictmers[key]] = len(matches) 
+            kdist[dictmers[key]] = len(matches) / len(i)
         for j in range(0,9):
             k= str(j)
             pattern = "T[A,C,G,T]{"+k+"}G"
             matches = re.findall(pattern,i,overlapped=True)
             key = "T" + "x"*(j) + "G"
-            kdist[dictmers[key]] = len(matches) 
+            kdist[dictmers[key]] = len(matches) / len(i)
         for j in range(0,9):
             k= str(j)
             pattern = "T[A,C,G,T]{"+k+"}T"
             matches = re.findall(pattern,i,overlapped=True)
             key = "T" + "x"*(j) + "T"
-            kdist[dictmers[key]] = len(matches) 
+            kdist[dictmers[key]] = len(matches) / len(i)
                 
         
             
@@ -425,7 +446,6 @@ def run_model(lower_bound, upper_bound, max_len, dataset, **kwargs):
     
     Xlen=[]
     
-    
     kmers =np.array(kmerscounted)
  
     print("shape of k mers data: ",np.shape(kmers)) 
@@ -434,8 +454,7 @@ def run_model(lower_bound, upper_bound, max_len, dataset, **kwargs):
     
     with open('5mers.txt') as f:
         five = [line.rstrip() for line in f]
-    with open('4mers.txt') as f:
-        four = [line.rstrip() for line in f]
+
     
     newmer = five 
     dictmers = { newmer[i] : i for i in range(0, len(newmer) ) }
@@ -446,7 +465,7 @@ def run_model(lower_bound, upper_bound, max_len, dataset, **kwargs):
             i = str(i)
             pattern= str(j) 
             matches = re.findall(pattern,i,overlapped=True)
-            kdist[dictmers[pattern]] = len(matches)
+            kdist[dictmers[pattern]] = len(matches) / len(i)
         kmerscounted.append(kdist)
         kdist = np.zeros(len(dictmers))
     
@@ -454,21 +473,28 @@ def run_model(lower_bound, upper_bound, max_len, dataset, **kwargs):
     
     from sklearn import preprocessing
     scaler = preprocessing.MinMaxScaler()
+    scalerPPI = preprocessing.MinMaxScaler()
     pca = PCA(n_components=500)
     ppi = scaler.fit_transform(ppi)
     ppiPCA = pca.fit_transform(ppi)
-    print("Explained variance by PCA for PPI is", np.sum(pca.explained_variance_ratio_))
-    
-    from sklearn import preprocessing
-    scaler = preprocessing.MinMaxScaler()
-    newData = np.concatenate((kmers, kmers_normal), axis = 1)
+    #print("Explained variance by PCA for PPI is", np.sum(pca.explained_variance_ratio_))
+    #kmersData = np.concatenate((kmers,kmers_normal), axis = 1)
+    #newData = np.concatenate((kmers, kmers_normal,ppiPCA), axis = 1)
+    newData = ppiPCA
     newData = scaler.fit_transform(newData)
-    
+    #Model tobe applied on the whole data and further be tesetd on independed dataset
+    print("Running model on the whole dataset")
+    OUTPATH = os.path.join(basedir,
+                               'Results/RNATracker-10foldcv/')
+    if not os.path.exists(OUTPATH):
+        os.makedirs(OUTPATH)
+
+  
     import random
     import pandas
     random.seed(1234)
     allframes = []
-    for j in range(30):
+    for j in range(1):
         OUTPATH = os.path.join(basedir,
                                'Results/RNATracker-10foldcv/' + args.dataset+ '/' + str(datetime.datetime.now()).split('.')[0].replace(':', '-').replace(' ', '-') + '-' + args.message + '/')
         if not os.path.exists(OUTPATH):
@@ -479,27 +505,51 @@ def run_model(lower_bound, upper_bound, max_len, dataset, **kwargs):
         kf = KFold(n_splits=10, shuffle=True, random_state=state)
         folds = kf.split(newData, y)
         for i, (train_indices, test_indices) in enumerate(folds):
+            #ppi[train_indices] = scalerPPI.fit_transform(ppi[train_indices])
+            #ppiPCATrain = pca.fit_transform(ppi[train_indices])
+            #kmersDataTrain = scaler.fit_transform(kmersData[train_indices])
+            #train_data = np.concatenate((kmersData[train_indices], ppiPCATrain), axis = 1)
+            #ppi[test_indices] = scalerPPI.fit_transform(ppi[test_indices])
+            #ppiPCATest = pca.fit_transform(ppi[test_indices])
+            #kmersDataTest = scaler.transform(kmersData[test_indices])
+            #test_data = np.concatenate((kmersData[test_indices], ppiPCATest), axis = 1)
+
+            #testData[test_indices] = scaler.fit_transform(newData[test_indices])
             print('Evaluating KFolds {}/10'.format(i + 1))
+            # from Models.RBPBindingModel import RBPBinder
+            # model = RBPBinder(max_len, nb_classes, OUTPATH)
+            from neural_network_predictor import RNALocator
             model = RNALocator(max_len, nb_classes, OUTPATH, kfold_index=i)# initialize
             print("Build RNALocator")
-            model.build_neural_network(np.shape(newData)[1], nb_classes)
-            model.train(newData[train_indices], y[train_indices], batch_size, kwargs['epochs'])
+            model.build_neural_network(np.shape(newData)[1])
+            history = model.train(newData[train_indices], y[train_indices], batch_size, kwargs['epochs'])
             model.evaluate(newData[test_indices],y[test_indices], dataset)
-        mydataframe = evaluate_folds.evaluate_folds(OUTPATH, dataset,myindex)
-        allframes.append(mydataframe)
-    
-    import pickle
+            import pickle
+            with open('trainHistory{}'.format(i+1), 'wb') as file_pi:
+                pickle.dump(history.history, file_pi)
+            # summarize history for loss
+            import matplotlib.pyplot as plt
+            plt.plot(history.history['loss'])
+            plt.plot(history.history['val_loss'])
+            plt.title('model loss')
+            plt.ylabel('loss')
+            plt.xlabel('epoch')
+            plt.legend(['train', 'test'], loc='upper left')
+            plt.show()
+            
+            from sklearn.inspection import permutation_importance
+            r = permutation_importance(model, newData[test_indices], y[test_indices],n_repeats=30,random_state=0)
+            for i in r.importances_mean.argsort()[::-1]:
+                if r.importances_mean[i] - 2 * r.importances_std[i] > 0:
+                    
+                    print(i)
+
     with open("savedfolds.txt", "wb") as fp:
         pickle.dump(allframes, fp)
         
     result = pd.concat(allframes)
     with open("savedfoldsConcat.txt", "wb") as fp:
         pickle.dump(result, fp)
-    
-    print(result)    
-           
-'''Always draw scatter plots for each experiment we run'''
-   
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -507,19 +557,20 @@ if __name__ == "__main__":
     parser.add_argument('--lower_bound', type=int, default=0, help='set lower bound on sample sequence length')
     parser.add_argument('--upper_bound', type=int, default= 40000, help='set upper bound on sample sequence length') #default=4000
     parser.add_argument('--max_len', type=int, default=40000,
-                        help="only a programming trick")
-    parser.add_argument('--dataset', type=str, default='rnalocate', choices=['cefra-seq', 'rnalocate'],
+                        help="dummy, pad or slice sequences to a fixed length in preprocessing")
+    #parser.add_argument('--nb_classes', type=int, default=5, help='number of locations in each dataset')
+    parser.add_argument('--dataset', type=str, default='cefra-seq', choices=['cefra-seq', 'apex-rip'],
                         help='choose from cefra-seq and rnalocate')
-    parser.add_argument('--epochs', type=int, default=1, help='')
+    parser.add_argument('--epochs', type=int, default=100, help='')
 
     parser.add_argument("--message", type=str, default="", help="append to the dir name")
     parser.add_argument("--load_pretrain", action="store_true",
-                        help="load pretrained model")
+                        help="load pretrained CNN weights to the first convolutional layers")
     parser.add_argument("--weights_dir", type=str, default="",
-                        help="Must specificy pretrained weights directory.")
+                        help="Must specificy pretrained weights dir, if load_pretrain is set to true. Only enter the relative path respective to the root of this project.")
     parser.add_argument("--randomization", type=int, default=None,
-                        help="")
-    
+                        help="Running randomization test with three settings - {1,2,3}.")
+    # parser.add_argument("--nb_epochs", type=int, default=20, help='choose the maximum number of iterations over training samples')
     args = parser.parse_args()
 
         
@@ -537,4 +588,3 @@ if __name__ == "__main__":
 
     
     run_model(**vars(args))
-
