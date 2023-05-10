@@ -479,8 +479,8 @@ def run_model(lower_bound, upper_bound, max_len, dataset, **kwargs):
     ppiPCA = pca.fit_transform(ppi)
     #print("Explained variance by PCA for PPI is", np.sum(pca.explained_variance_ratio_))
     #kmersData = np.concatenate((kmers,kmers_normal), axis = 1)
-    #newData = np.concatenate((kmers, kmers_normal,ppiPCA), axis = 1)
-    newData = ppiPCA
+    newData = np.concatenate((kmers, kmers_normal,ppiPCA), axis = 1)
+    #newData = ppiPCA
     newData = scaler.fit_transform(newData)
     #Model tobe applied on the whole data and further be tesetd on independed dataset
     print("Running model on the whole dataset")
