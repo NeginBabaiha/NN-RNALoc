@@ -1,7 +1,6 @@
 import datetime
 import itertools
 from collections import OrderedDict
-import matplotlib
 import argparse
 import os
 import sys
@@ -16,7 +15,8 @@ import sys
 import h5py
 from sklearn.decomposition import PCA
 import numpy as np
-#import evaluate_folds
+
+
 os.environ["CUDA_VISIBLE_DEVICES"] = "1"
 basedir = os.path.split(os.path.dirname(os.path.abspath(__file__)))[0]
 sys.path.append(basedir)
@@ -37,16 +37,13 @@ sess = tf.compat.v1.Session(graph=tf.compat.v1.get_default_graph(), config=confi
 tf.compat.v1.keras.backend.set_session(sess)
 #set_session(session=sess)
 
-from Models.neural_network_predictor import *
-from transcript_gene_data import Gene_Wrapper
-from tensorflow.keras.preprocessing.sequence import pad_sequences
+from Models.neural_network_predictor import * 
+from transcript_info import Gene_Wrapper
+from tensorflow.keras.preprocessing.sequence import pad_sequences               
 #from tensorflow.keras import backend as K
 from tensorflow.python.keras import backend as k
 from tensorflow.python.keras import models
 from tensorflow.python.keras.models import load_model
-
-
-
 
 gene_ids = None
 temp = []
@@ -66,7 +63,7 @@ def preprocess_data(lower_bound, upper_bound, use_annotations, dataset, max_len)
     ''' import data CEFRA-SEQ: CDNA_SCREENED.FA using GENE_WRAPPER calss fromtranascript_gene_data
     '''
     if(dataset == "rnalocate"):
-        import Data.rnalocate.processData as processor
+        import rnalocate.processData as processor
         X, y = processor.process_data()
     if(dataset == "cefra-seq"):
         gene_data = Gene_Wrapper.seq_data_loader(use_annotations, dataset, lower_bound, upper_bound)
@@ -225,41 +222,11 @@ def count_(string, substring):
 def run_model(lower_bound, upper_bound, max_len, dataset, **kwargs):
     '''load data into the playground'''
     X, y = preprocess_data(lower_bound, upper_bound,max_len, dataset, max_len)
-    
-    '''import pickle
-    history = pickle.load(open("trainHistory","rb"))
-    import matplotlib.pyplot as plt
-    plt.plot(history['loss'])
-    plt.plot(history['val_loss'])
-    plt.title('model loss')
-    plt.ylabel('loss')
-    plt.xlabel('epoch')
-    plt.legend(['train', 'test'], loc='upper left')
-    plt.show()'''
-    
- 
-    '''with open('indep_target_nonHuman.npy', 'wb') as f:
-        np.save(f, y)'''
-    
-        
-    '''with open('indep_seq_Human.txt', 'w') as f:
-        for item,seq in enumerate(X):
-            f.write(">")
-            f.write(str(item))
-            f.write("\n")
-            f.write(str(seq))
-            f.write("\n")
-    '''
-    
-    #mRNALoc results
-    '''res = [line.rstrip() for line in f]
-    res.pop(0)
-    print(res)
-    f.close()
-    count = len(open("mRNALoc_Indep_Human.txt").readlines(  ))
-    print(count)
-    '''
-    
+    OUTPATH = os.path.join(basedir,
+                               'Results/RNATracker-10foldcv/' + args.dataset+ '/' + str(datetime.datetime.now()).split('.')[0].replace(':', '-').replace(' ', '-') + '-' + args.message + '/')
+    if not os.path.exists(OUTPATH):
+            os.makedirs(OUTPATH)
+    print("Build RNALocator")
     #Load protein information
     if(dataset == "cefra-seq"):
         print("Cefra-seq PPI inforamtion")
@@ -272,6 +239,7 @@ def run_model(lower_bound, upper_bound, max_len, dataset, **kwargs):
         with open('ppiHomosapRNALocate.npy', 'rb') as f:
             ppi = np.load(f)
         nb_classes = 5
+        
         
         
     # Do feature importance with a regressor baseline
@@ -289,8 +257,7 @@ def run_model(lower_bound, upper_bound, max_len, dataset, **kwargs):
     ppiPCA = pca.fit_transform(ppi)
     print("Done PCA")
     newData = ppiPCA
-    
-    
+
     #Compute novel distance based k mers
 
     newmer = []
@@ -479,8 +446,8 @@ def run_model(lower_bound, upper_bound, max_len, dataset, **kwargs):
     ppiPCA = pca.fit_transform(ppi)
     #print("Explained variance by PCA for PPI is", np.sum(pca.explained_variance_ratio_))
     #kmersData = np.concatenate((kmers,kmers_normal), axis = 1)
-    newData = np.concatenate((kmers, kmers_normal,ppiPCA), axis = 1)
-    #newData = ppiPCA
+    #newData = np.concatenate((kmers, kmers_normal,ppiPCA), axis = 1)
+    newData = ppiPCA
     newData = scaler.fit_transform(newData)
     #Model tobe applied on the whole data and further be tesetd on independed dataset
     print("Running model on the whole dataset")
@@ -488,8 +455,7 @@ def run_model(lower_bound, upper_bound, max_len, dataset, **kwargs):
                                'Results/RNATracker-10foldcv/')
     if not os.path.exists(OUTPATH):
         os.makedirs(OUTPATH)
-
-  
+    
     import random
     import pandas
     random.seed(1234)
@@ -505,16 +471,8 @@ def run_model(lower_bound, upper_bound, max_len, dataset, **kwargs):
         kf = KFold(n_splits=10, shuffle=True, random_state=state)
         folds = kf.split(newData, y)
         for i, (train_indices, test_indices) in enumerate(folds):
-            #ppi[train_indices] = scalerPPI.fit_transform(ppi[train_indices])
-            #ppiPCATrain = pca.fit_transform(ppi[train_indices])
-            #kmersDataTrain = scaler.fit_transform(kmersData[train_indices])
-            #train_data = np.concatenate((kmersData[train_indices], ppiPCATrain), axis = 1)
-            #ppi[test_indices] = scalerPPI.fit_transform(ppi[test_indices])
-            #ppiPCATest = pca.fit_transform(ppi[test_indices])
-            #kmersDataTest = scaler.transform(kmersData[test_indices])
-            #test_data = np.concatenate((kmersData[test_indices], ppiPCATest), axis = 1)
-
-            #testData[test_indices] = scaler.fit_transform(newData[test_indices])
+            newData[train_indices] = scaler.fit_transform(newData[train_indices])
+            newData[test_indices] = scaler.fit_transform(newData[test_indices])
             print('Evaluating KFolds {}/10'.format(i + 1))
             # from Models.RBPBindingModel import RBPBinder
             # model = RBPBinder(max_len, nb_classes, OUTPATH)
@@ -522,34 +480,23 @@ def run_model(lower_bound, upper_bound, max_len, dataset, **kwargs):
             model = RNALocator(max_len, nb_classes, OUTPATH, kfold_index=i)# initialize
             print("Build RNALocator")
             model.build_neural_network(np.shape(newData)[1])
-            history = model.train(newData[train_indices], y[train_indices], batch_size, kwargs['epochs'])
+            model.train(newData[train_indices], y[train_indices], batch_size, kwargs['epochs'])
             model.evaluate(newData[test_indices],y[test_indices], dataset)
-            import pickle
-            with open('trainHistory{}'.format(i+1), 'wb') as file_pi:
-                pickle.dump(history.history, file_pi)
-            # summarize history for loss
-            import matplotlib.pyplot as plt
-            plt.plot(history.history['loss'])
-            plt.plot(history.history['val_loss'])
-            plt.title('model loss')
-            plt.ylabel('loss')
-            plt.xlabel('epoch')
-            plt.legend(['train', 'test'], loc='upper left')
-            plt.show()
-            
-            from sklearn.inspection import permutation_importance
-            r = permutation_importance(model, newData[test_indices], y[test_indices],n_repeats=30,random_state=0)
-            for i in r.importances_mean.argsort()[::-1]:
-                if r.importances_mean[i] - 2 * r.importances_std[i] > 0:
-                    
-                    print(i)
-
+        mydataframe = evaluate_folds.evaluate_folds(OUTPATH, dataset,myindex)
+        allframes.append(mydataframe)
+    
+    import pickle
     with open("savedfolds.txt", "wb") as fp:
         pickle.dump(allframes, fp)
         
     result = pd.concat(allframes)
     with open("savedfoldsConcat.txt", "wb") as fp:
         pickle.dump(result, fp)
+    
+    print(result)    
+           
+'''Always draw scatter plots for each experiment we run'''
+   
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -559,9 +506,9 @@ if __name__ == "__main__":
     parser.add_argument('--max_len', type=int, default=40000,
                         help="dummy, pad or slice sequences to a fixed length in preprocessing")
     #parser.add_argument('--nb_classes', type=int, default=5, help='number of locations in each dataset')
-    parser.add_argument('--dataset', type=str, default='cefra-seq', choices=['cefra-seq', 'apex-rip'],
+    parser.add_argument('--dataset', type=str, default='cefra-seq', choices=['cefra-seq', 'rnalocate'],
                         help='choose from cefra-seq and rnalocate')
-    parser.add_argument('--epochs', type=int, default=100, help='')
+    parser.add_argument('--epochs', type=int, default=300, help='')
 
     parser.add_argument("--message", type=str, default="", help="append to the dir name")
     parser.add_argument("--load_pretrain", action="store_true",
