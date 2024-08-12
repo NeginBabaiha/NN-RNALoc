@@ -13,6 +13,3 @@ pip install keras==2.3.1
 ## Running NN-RNALoc
 To run NN-RNALoc, first unzip both rnalocate.zip and cefra-seq.zip files contained in Data directory. Then, unzip the PPIdata.zip file and put this information in the Scripts folder. Finally, from scripts open and run RNALocator.py.
 
-## Contact
-Please do not hesitate to contact me if you have any question: \
-Mail: <negin.babaiha@uni-bonn.de>
